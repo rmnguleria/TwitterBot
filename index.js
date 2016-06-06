@@ -29,6 +29,12 @@ var T = new Twit({
 }); */
 
 var destinations = {'Bahamas' : 'BH','Caribbean' : 'EC','Alaska' : 'A' };
+var month = {'january' : '2017-01-01','february' : '2017-02-01','march' : '2017-03-01'
+,'april' : '2017-04-01','may' : '2017-05-01','june' : '2017-06-01','july' : '2016-07-01'
+,'august' : '2016-08-01','september' : '2016-09-01','october' : '2016-10-01','november' : '2016-11-01','december' : '2016-12-01'}
+var month_key = {'jan' : '2017-01-01','feb' : '2017-02-01','mar' : '2017-03-01'
+,'apr' : '2017-04-01','may' : '2017-05-01','jun' : '2017-06-01','july' : '2016-07-01'
+,'aug' : '2016-08-01','sept' : '2016-09-01','oct' : '2016-10-01','nov' : '2016-11-01','dec' : '2016-12-01'}
 
 /**
  * Stream statuses filtered by keyword
@@ -43,13 +49,39 @@ client.stream('statuses/filter', {track: 'Cruise 0QnF'},  function(stream) {
 
     var text = tweet.text;
 
+
+
     if(text.includes('bahamas') || text.includes('caribbean') || text.includes('alaska')){
 
       console.log('I am here');
 
       var dest = text.includes('bahamas') ? 'bahamas' : (text.includes('caribbean') ? 'caribbean' : 'alaska' );
 
-      var reply = "https://www.expedia.com/Cruise-Search?destination="+dest+"&earliest-departure-date=2016-07-01";
+      var date = '';
+
+        for (var key in month){
+          if(text.toLowerCase().includes(key)){
+          date = month[key]
+          console.log("found" + key + " " + date)
+          }
+        }
+
+        if(date === ''){
+          for (var key in month_key){
+            if(text.toLowerCase().includes(key)){
+              date = month_key[key]
+              console.log("found" + key + " " + date)
+            }
+          }
+        }
+
+      var reply = '';
+
+      if(date === ''){
+        reply = "https://www.expedia.com/Cruise-Search?destination="+dest+"&earliest-departure-date=2016-07-01";       
+      }else{
+        reply = "https://www.expedia.com/Cruise-Search?destination="+dest+"&earliest-departure-date="+date;
+      }     
 
       var name = tweet.user.screen_name;
 
