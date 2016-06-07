@@ -3,6 +3,7 @@ var request = require('request');
 var https = require('https');
 var Twit = require('twit');
 var randomstring = require('randomstring');
+var Bitly = require('bitly');
 
 var con_key = 'BiyGtBQAASztWUA0YW73OTdWA';
 var con_sec = 'Xtglunu4XHppVsorIkXuGHTRCkEC7V1eIZQqXfQU1KmvrFUT2g';
@@ -13,6 +14,8 @@ var con_key2 = 'vm4zteHDsQQ5o7hYyErympb4I';
 var con_sec2 = 'Roir0k91Ltc02BVrfMLYZrWhmAvkc9FsOObtgemomiwQ6nY8ML';
 var token_key2 = '739792147545657347-Blzmh5GZxV1HhqZDF6SdTCQR17lRIHg';
 var token_secret2 = 'FIwmyNhB8l20HglGm28MhHzZywSeNJFKmWda16h4rcMdp';
+
+var bitly = new Bitly('9cd0b6d63017d12bc1ee97dbaccb2c3824b472b0');
 
 var clientExpediaChat1 = new Twitter({
   consumer_key: con_key2,
@@ -98,6 +101,26 @@ clientExpediaChat1.stream('statuses/filter', {track: '@expchatbot '},  function(
               console.log(entities[obj_key])
               var obj_val = entities[obj_key][0]["value"];
 
+              var journey_time = '';
+              var journey_duration = '';
+              var journey_budget = '';
+
+              if(obj_key === 'depart_time'){
+                    chatHistory[index].journey_time = obj_val
+              }else if(obj_key === 'trip_dur'){
+                     chatHistory[index].journey_duration = obj_val
+              }else if(obj_key === 'maxPrice'){
+                    chatHistory[index].journey_budget = obj_val
+                    console.log("################ Object Values #################")
+                    console.log(chatHistory[index].journey_time)
+                    console.log(chatHistory[index].journey_duration)
+                    console.log(chatHistory[index].journey_budget)
+                    console.log("################ Object Values Ending #################")
+              }else{
+
+              }
+
+
               var str = "{" + '"' + obj_key  + '"' + ":" + '"' + obj_val + '"' + "}";
 
               request({
@@ -112,10 +135,44 @@ clientExpediaChat1.stream('statuses/filter', {track: '@expchatbot '},  function(
                 var nameID = tweet.id_str;
                 var name = tweet.user.screen_name;
                 var reply = userObj.msg;
-                T.post('statuses/update', {in_reply_to_status_id: nameID, status: ' @' + name + ' ' + reply}, function(err, data, response) { 
-                  console.log(data);
-                  chatHistory[index].latest_id = data.id_str;
-                });
+
+                if(reply.includes('Let me search some which are under')){
+                    var jDate = new Date(chatHistory[index].journey_time);
+                    var jNewDate = new Date(new Date(jDate).setMonth(jDate.getMonth() + 4));
+
+                    var month1 = jDate.getMonth() + 1;
+                    var jDateStr = jDate.getFullYear() + "-" + month1 + "-" + jDate.getDay();
+
+                    var month2 = jNewDate.getMonth() + 1;
+                    var jNewDateStr = jNewDate.getFullYear() + "-" + month2 + "-" + jNewDate.getDay();
+
+                    var jMinDur = parseInt(chatHistory[index].journey_duration)/2;
+                    var jMaxDur = jMinDur * 3;
+                    var jMaxPrice = chatHistory[index].journey_budget;
+                    var jDesitnation = chatHistory[index].destination;
+
+                    var url = "https://www.expedia.com/Cruise-Search?min-length="
+                                +jMinDur+"&max-length="+jMaxDur+"&destination="+jDesitnation
+                                    +"&earliest-departure-date="+jDateStr+"&latest-departure-date="+jNewDateStr+"";
+
+                    console.log("url is " + url);
+
+                    bitly.shorten(url).then(function(response){
+                        reply =  "Voila " + response.data.url;
+                        console.log(reply);
+                        T.post('statuses/update', {in_reply_to_status_id: nameID, status: ' @' + name + ' ' + reply}, function(err, data, response) { 
+                            console.log(data);
+                            chatHistory[index].latest_id = data.id_str;
+                        });
+                    })
+                }else{
+                    T.post('statuses/update', {in_reply_to_status_id: nameID, status: ' @' + name + ' ' + reply}, function(err, data, response) { 
+                        console.log(data);
+                        chatHistory[index].latest_id = data.id_str;
+                    });
+                }
+                
+
               });
 
             }
@@ -203,6 +260,7 @@ clientExpediaChat2.stream('statuses/filter', {track: 'Cruise 0QnF1'},  function(
         newChat.latest_id = data.id_str;
         newChat.status = 0;
         newChat.witSessionId = rand_str;
+        newChat.destination = dest;
 
         chatHistory.push(newChat)
 
