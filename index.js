@@ -43,6 +43,10 @@ var T = new Twit({
 
 var destinations = {'Bahamas' : 'BH','Caribbean' : 'EC','Alaska' : 'A' };
 
+var monthNames = ["January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+
 var month = {'january' : '2017-01-01','february' : '2017-02-01','march' : '2017-03-01'
 ,'april' : '2017-04-01','may' : '2017-05-01','june' : '2017-06-01','july' : '2016-07-01'
 ,'august' : '2016-08-01','september' : '2016-09-01','october' : '2016-10-01','november' : '2016-11-01','december' : '2016-12-01'}
@@ -185,7 +189,21 @@ clientExpediaChat1.stream('statuses/filter', {track: '@expchatbot '},  function(
                                 });
                             });
                     });
-                }else{
+                }else if(reply.includes('What is your preferred duration for the cruise in')){
+
+                    var jDate = new Date(chatHistory[index].journey_time);
+                    monthName = monthNames[jDate.getMonth()];
+
+                    reply = "What is your preferred duration for the cruise in " + monthName;
+
+                    T.post('statuses/update', {in_reply_to_status_id: nameID, status: ' @' + name + ' ' + reply}, function(err, data, response) { 
+                        console.log(data);
+                        chatHistory[index].latest_id = data.id_str;
+                    });
+
+
+                }
+                else{
                     T.post('statuses/update', {in_reply_to_status_id: nameID, status: ' @' + name + ' ' + reply}, function(err, data, response) { 
                         console.log(data);
                         chatHistory[index].latest_id = data.id_str;
