@@ -1,32 +1,21 @@
 var Twitter = require('twitter');
 var request = require('request');
+var https = require('https');
 var Twit = require('twit');
 
-var client = new Twitter({
-  consumer_key: 'zajBQQiuMrXRpkwxcJIah0QnF',
-  consumer_secret: 't0rxbO3BTxjhH6bKSOshvClWROxyhGoZ7OmlqpUbYNnsyowXmX',
-  access_token_key: '2599940893-Rh6LLjk2RbNlWhxtXU4ap8lOIuMPclSRTX9Ldew',
-  access_token_secret: 'kcAJ9CAv2ogV1nNLDep710Sb9yK8izSZq4RWM2eTkbd6v'
+var clientExpediaChat = new Twitter({
+  consumer_key: '6JbfAfp2Cvo6LcnKu0EN86umj',
+  consumer_secret: 'kETKP4gTGQK2ty7EMmCstNNmFFmAylF4fUnPnlhnM8Bqe0PmhK',
+  access_token_key: '739792147545657347-4TUnnjrWv1fkYXu28nj0nimwuPlauUt',
+  access_token_secret: 'mA4Vp2pMuofDR7sesDONHaNCb6gXsY9s5AvDGD46IX91N'
 });
 
 var T = new Twit({
-  consumer_key:         'zajBQQiuMrXRpkwxcJIah0QnF',
-  consumer_secret:      't0rxbO3BTxjhH6bKSOshvClWROxyhGoZ7OmlqpUbYNnsyowXmX',
-  access_token:         '2599940893-Rh6LLjk2RbNlWhxtXU4ap8lOIuMPclSRTX9Ldew',
-  access_token_secret:  'kcAJ9CAv2ogV1nNLDep710Sb9yK8izSZq4RWM2eTkbd6v',
+  consumer_key: '6JbfAfp2Cvo6LcnKu0EN86umj',
+  consumer_secret: 'kETKP4gTGQK2ty7EMmCstNNmFFmAylF4fUnPnlhnM8Bqe0PmhK',
+  access_token: '739792147545657347-4TUnnjrWv1fkYXu28nj0nimwuPlauUt',
+  access_token_secret: 'mA4Vp2pMuofDR7sesDONHaNCb6gXsY9s5AvDGD46IX91N'
 })
-
-
-/* client.get('search/tweets', {q: 'Expedia Cruise zajBQQiuMrXRpkwxcJIah0QnF'}, function(error, tweets, response) {
-   var statuses = tweets.statuses;
-
-   for(var i = 0 ; i<statuses.length;i++){
-   	console.log(statuses[i].text);
-   	console.log(statuses[i].user.screen_name);
-
-   }
-
-}); */
 
 var destinations = {'Bahamas' : 'BH','Caribbean' : 'EC','Alaska' : 'A' };
 var month = {'january' : '2017-01-01','february' : '2017-02-01','march' : '2017-03-01'
@@ -40,10 +29,102 @@ var month_key = {'jan' : '2017-01-01','feb' : '2017-02-01','mar' : '2017-03-01'
  * Stream statuses filtered by keyword
  * number of tweets per second depends on topic popularity
  **/
-client.stream('statuses/filter', {track: 'Cruise 0QnF'},  function(stream) {
+
+var chatHistory = [];
+
+clientExpediaChat.stream('statuses/filter', {track: '@expchatbot '},  function(stream) {
   stream.on('data', function(tweet) {
+
+    console.log("###################Expedia Chat Bot ###############")
     console.log(tweet.text);
     console.log(tweet.user);
+
+    if (contains(chatHistory,tweet.in_reply_to_status_id_str)){
+
+    console.log('calling wit api');
+
+     var options = {
+        hostname : 'api.wit.ai',
+        path : '/converse?v=20160526&session_id=123457abc&q=I%20would%20like%20a%20trip%20to%20Bahamas.',
+        method : 'POST',
+        headers : {'Authorization': 'Bearer KB7WPHYI4572VEVGZP4SKUADCLPRVWLO', 'Content-Type': 'application/json', 'Accept': 'application/json'}
+      };
+
+      var respBody = '';
+
+      var req = https.request(options, (resp) => {
+        console.log("#########hahahajdjkshkdjh ###########");
+        //console.log(resp);
+
+        resp.on('data', (d) => {
+          respBody += d;
+          
+        });
+
+        resp.on('end', () => {
+          console.log(respBody);
+
+          var respObj = JSON.parse(respBody);
+
+          var entities = respObj.entities;
+
+          var obj_key = Object.keys(entities)[0];
+
+          var obj_val = entities.obj_key.value;
+
+          console.log("########fetching values");
+
+          console.log(obj_key +  " " + obj_val)
+
+          var options = {
+                hostname : 'api.wit.ai',
+                path : '/converse?v=20160526&session_id=123457abc&q=I%20would%20like%20a%20trip%20to%20Bahamas.',
+                method : 'POST',
+                headers : {'Authorization': 'Bearer KB7WPHYI4572VEVGZP4SKUADCLPRVWLO', 'Content-Type': 'application/json', 'Accept': 'application/json'}
+              };
+
+        });
+        
+      });
+
+      req.end();
+
+      // extract text // send to wit
+
+      // wit reply.
+
+
+
+      // var nameID = tweet.id_str;
+      // reply = "sample1";
+
+      // T.post('statuses/update', {in_reply_to_status_id: nameID, status: ' @' + name + ' ' + reply}, function(err, data, response) { 
+      //   console.log(data);
+
+      // })
+
+      //
+
+    }
+});
+
+  stream.on('error', function(error) {
+    console.log(error);
+  });
+});
+
+var dataString = 'status=Maybe+he%27ll+finally+find+his+keys.+%23peterfalk';
+
+var options = {
+    url: 'https://api.twitter.com/1.1/statuses/update.json',
+    method: 'POST',
+    body: dataString
+};
+
+clientExpediaChat.stream('statuses/filter', {track: 'Cruise 0QnF1'},  function(stream) {
+  stream.on('data', function(tweet) {
+    //console.log(tweet.text);
+    console.log(tweet);
 
     var nameID = tweet.id_str;
 
@@ -77,11 +158,13 @@ client.stream('statuses/filter', {track: 'Cruise 0QnF'},  function(stream) {
 
       var reply = '';
 
-      if(date === ''){
-        reply = "https://www.expedia.com/Cruise-Search?destination="+dest+"&earliest-departure-date=2016-07-01";       
-      }else{
-        reply = "https://www.expedia.com/Cruise-Search?destination="+dest+"&earliest-departure-date="+date;
-      }     
+      // if(date === ''){
+      //   reply = "https://www.expedia.com/Cruise-Search?destination="+dest+"&earliest-departure-date=2016-07-01";       
+      // }else{
+      //   reply = "https://www.expedia.com/Cruise-Search?destination="+dest+"&earliest-departure-date="+date;
+      // }     
+
+      reply = "Would you like a trip to " + dest;
 
       var name = tweet.user.screen_name;
 
@@ -89,6 +172,14 @@ client.stream('statuses/filter', {track: 'Cruise 0QnF'},  function(stream) {
 
       T.post('statuses/update', {in_reply_to_status_id: nameID, status: ' @' + name + ' ' + reply}, function(err, data, response) { 
         console.log(data);
+
+        var newChat = new Object();
+        newChat.latest_id = data.id_str;
+        newChat.status = 0;
+        newChat.witSessionId = data.id_str;
+
+        chatHistory.push(newChat)
+
       })
     }
 });
@@ -97,6 +188,19 @@ client.stream('statuses/filter', {track: 'Cruise 0QnF'},  function(stream) {
     console.log(error);
   });
 });
+
+function contains(arr,id_str){
+  console.log("############### searchin id : " + id_str)
+  console.log("############### array " + arr)
+
+  for(var i = 0 ; i < arr.length ; i++){
+    console.log("arr val is " + arr[i].latest_id)
+    if(arr[i].latest_id === id_str)
+      return true;
+  }
+
+  return false;
+}
 
 var dataString = 'status=Maybe+he%27ll+finally+find+his+keys.+%23peterfalk';
 
@@ -111,5 +215,6 @@ function callback(error, response, body) {
         console.log(body);
     }
 }
+
 
 //request(options, callback);
