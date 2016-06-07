@@ -142,7 +142,7 @@ clientExpediaChat1.stream('statuses/filter', {track: '@expchatbot '},  function(
 
                 if(reply.includes('Let me search some which are under')){
 
-                    var jMinDur = parseInt(chatHistory[index].journey_duration)/2;
+                    var jMinDur = Math.round(parseInt(chatHistory[index].journey_duration)/2);
                     var jMaxDur = jMinDur * 3;
 
                     var jDate = new Date(chatHistory[index].journey_time);
@@ -163,7 +163,7 @@ clientExpediaChat1.stream('statuses/filter', {track: '@expchatbot '},  function(
                     request({
                         url: 'http://terminal2.expedia.com/x/cruise/search/sailings', //URL to5 hit
                             qs: {destinations: destinations[jDesitnation], earliestDeptDate : jearliestDate, latestDeptDate : jLatestDate, minLength : jMinDur, maxLength : jMaxDur, maxPrice : jMaxPrice,
-                            sortBy : 'price', sortOrder : 'asc' , limit : '10' , 'apikey' : 'Ud5P8FMQAh65ENW3c9y7h52cdrCt9xn1'}, //Query string data
+                            sortBy : 'price', sortOrder : 'asc' , limit : '2' , 'apikey' : 'Ud5P8FMQAh65ENW3c9y7h52cdrCt9xn1'}, //Query string data
                             method: 'GET'
                     },function(error,response,body){
                              console.log(response.statusCode,body);
@@ -241,11 +241,11 @@ clientExpediaChat2.stream('statuses/filter', {track: 'Cruise 0QnF1'},  function(
 
     var text = tweet.text;
 
-    if(text.includes('bahamas') || text.includes('caribbean') || text.includes('alaska')){
+    if(text.includes('ahamas') || text.includes('aribbean') || text.includes('laska')){
 
       console.log('I am here');
 
-      var dest = text.includes('bahamas') ? 'bahamas' : (text.includes('caribbean') ? 'caribbean' : 'alaska' );
+      var dest = text.includes('ahamas') ? 'bahamas' : (text.includes('aribbean') ? 'caribbean' : 'alaska' );
 
       var date = '';
 
