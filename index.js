@@ -2,25 +2,48 @@ var Twitter = require('twitter');
 var request = require('request');
 var https = require('https');
 var Twit = require('twit');
+var randomstring = require('randomstring');
 
-var clientExpediaChat = new Twitter({
-  consumer_key: '6JbfAfp2Cvo6LcnKu0EN86umj',
-  consumer_secret: 'kETKP4gTGQK2ty7EMmCstNNmFFmAylF4fUnPnlhnM8Bqe0PmhK',
-  access_token_key: '739792147545657347-4TUnnjrWv1fkYXu28nj0nimwuPlauUt',
-  access_token_secret: 'mA4Vp2pMuofDR7sesDONHaNCb6gXsY9s5AvDGD46IX91N'
+var con_key = 'BiyGtBQAASztWUA0YW73OTdWA';
+var con_sec = 'Xtglunu4XHppVsorIkXuGHTRCkEC7V1eIZQqXfQU1KmvrFUT2g';
+var token_key = '739792147545657347-lA2Lmegk1HsdpzyG7TFJkYNSJzTK7C7';
+var token_secret = 'H3RIKHBlWsoiLJKbC4L3OUZuOoMCgrISBXqFtPituJyW7';
+
+var con_key2 = 'vm4zteHDsQQ5o7hYyErympb4I';
+var con_sec2 = 'Roir0k91Ltc02BVrfMLYZrWhmAvkc9FsOObtgemomiwQ6nY8ML';
+var token_key2 = '739792147545657347-Blzmh5GZxV1HhqZDF6SdTCQR17lRIHg';
+var token_secret2 = 'FIwmyNhB8l20HglGm28MhHzZywSeNJFKmWda16h4rcMdp';
+
+var clientExpediaChat1 = new Twitter({
+  consumer_key: con_key2,
+  consumer_secret: con_sec2,
+  access_token_key: token_key2,
+  access_token_secret: token_secret2
 });
 
+
+var clientExpediaChat2 = new Twitter({
+  consumer_key: con_key2,
+  consumer_secret: con_sec2,
+  access_token_key: token_key2,
+  access_token_secret: token_secret2
+});
+
+
+
 var T = new Twit({
-  consumer_key: '6JbfAfp2Cvo6LcnKu0EN86umj',
-  consumer_secret: 'kETKP4gTGQK2ty7EMmCstNNmFFmAylF4fUnPnlhnM8Bqe0PmhK',
-  access_token: '739792147545657347-4TUnnjrWv1fkYXu28nj0nimwuPlauUt',
-  access_token_secret: 'mA4Vp2pMuofDR7sesDONHaNCb6gXsY9s5AvDGD46IX91N'
+  consumer_key: con_key2,
+  consumer_secret: con_sec2,
+  access_token: token_key2,
+  access_token_secret: token_secret2
 })
 
 var destinations = {'Bahamas' : 'BH','Caribbean' : 'EC','Alaska' : 'A' };
+
 var month = {'january' : '2017-01-01','february' : '2017-02-01','march' : '2017-03-01'
 ,'april' : '2017-04-01','may' : '2017-05-01','june' : '2017-06-01','july' : '2016-07-01'
 ,'august' : '2016-08-01','september' : '2016-09-01','october' : '2016-10-01','november' : '2016-11-01','december' : '2016-12-01'}
+
 var month_key = {'jan' : '2017-01-01','feb' : '2017-02-01','mar' : '2017-03-01'
 ,'apr' : '2017-04-01','may' : '2017-05-01','jun' : '2017-06-01','july' : '2016-07-01'
 ,'aug' : '2016-08-01','sept' : '2016-09-01','oct' : '2016-10-01','nov' : '2016-11-01','dec' : '2016-12-01'}
@@ -32,78 +55,71 @@ var month_key = {'jan' : '2017-01-01','feb' : '2017-02-01','mar' : '2017-03-01'
 
 var chatHistory = [];
 
-clientExpediaChat.stream('statuses/filter', {track: '@expchatbot '},  function(stream) {
+clientExpediaChat1.stream('statuses/filter', {track: '@expchatbot '},  function(stream) {
   stream.on('data', function(tweet) {
 
-    console.log("###################Expedia Chat Bot ###############")
+    console.log("################# Expedia Chat Bot ###############")
     console.log(tweet.text);
     console.log(tweet.user);
 
     if (contains(chatHistory,tweet.in_reply_to_status_id_str)){
 
-    console.log('calling wit api');
+      var ses_id = '';
+      var index = 0;
 
-     var options = {
-        hostname : 'api.wit.ai',
-        path : '/converse?v=20160526&session_id=123457abc&q=I%20would%20like%20a%20trip%20to%20Bahamas.',
-        method : 'POST',
-        headers : {'Authorization': 'Bearer KB7WPHYI4572VEVGZP4SKUADCLPRVWLO', 'Content-Type': 'application/json', 'Accept': 'application/json'}
-      };
+      for(var i= 0 ; i < chatHistory.length;i++){
+        if(chatHistory.latest_id = tweet.in_reply_to_status_id_str){
+          ses_id = chatHistory[i].witSessionId;
+          index = i;
+        }
+      }
 
-      var respBody = '';
+      console.log("Session Id is " + ses_id );
 
-      var req = https.request(options, (resp) => {
-        console.log("#########hahahajdjkshkdjh ###########");
-        //console.log(resp);
+      request({
+        url: 'https://api.wit.ai/converse', //URL to hit
+        qs: {v: '20160526', session_id : ses_id,q : tweet.text.substring(12)}, //Query string data
+        method: 'POST',
+        headers: {'Authorization': 'Bearer KB7WPHYI4572VEVGZP4SKUADCLPRVWLO', 'Content-Type': 'application/json', 'Accept': 'application/json'}
+        }, function(error, response, body){
+            if(error) {
+              console.log(error);
+            } else {
+              console.log(response.statusCode, body);
 
-        resp.on('data', (d) => {
-          respBody += d;
-          
-        });
+              var respObj = JSON.parse(body);
 
-        resp.on('end', () => {
-          console.log(respBody);
+              var entities = respObj.entities;
 
-          var respObj = JSON.parse(respBody);
+              var obj_key = Object.keys(entities)[0];
 
-          var entities = respObj.entities;
+              console.log(obj_key)
 
-          var obj_key = Object.keys(entities)[0];
+              console.log(entities[obj_key])
+              var obj_val = entities[obj_key][0]["value"];
 
-          var obj_val = entities.obj_key.value;
+              var str = "{" + '"' + obj_key  + '"' + ":" + '"' + obj_val + '"' + "}";
 
-          console.log("########fetching values");
+              request({
+                url: 'https://api.wit.ai/converse', //URL to5 hit
+                qs: {v: '20160526', session_id : ses_id}, //Query string data
+                method: 'POST',
+                headers: {'Authorization': 'Bearer KB7WPHYI4572VEVGZP4SKUADCLPRVWLO', 'Content-Type': 'application/json', 'Accept': 'application/json'},
+                body : str
+              },function(error,response,body){
+                console.log(response.statusCode,body);
+                var userObj = JSON.parse(body);
+                var nameID = tweet.id_str;
+                var name = tweet.user.screen_name;
+                var reply = userObj.msg;
+                T.post('statuses/update', {in_reply_to_status_id: nameID, status: ' @' + name + ' ' + reply}, function(err, data, response) { 
+                  console.log(data);
+                  chatHistory[index].latest_id = data.id_str;
+                });
+              });
 
-          console.log(obj_key +  " " + obj_val)
-
-          var options = {
-                hostname : 'api.wit.ai',
-                path : '/converse?v=20160526&session_id=123457abc&q=I%20would%20like%20a%20trip%20to%20Bahamas.',
-                method : 'POST',
-                headers : {'Authorization': 'Bearer KB7WPHYI4572VEVGZP4SKUADCLPRVWLO', 'Content-Type': 'application/json', 'Accept': 'application/json'}
-              };
-
-        });
-        
+            }
       });
-
-      req.end();
-
-      // extract text // send to wit
-
-      // wit reply.
-
-
-
-      // var nameID = tweet.id_str;
-      // reply = "sample1";
-
-      // T.post('statuses/update', {in_reply_to_status_id: nameID, status: ' @' + name + ' ' + reply}, function(err, data, response) { 
-      //   console.log(data);
-
-      // })
-
-      //
 
     }
 });
@@ -121,7 +137,7 @@ var options = {
     body: dataString
 };
 
-clientExpediaChat.stream('statuses/filter', {track: 'Cruise 0QnF1'},  function(stream) {
+clientExpediaChat2.stream('statuses/filter', {track: 'Cruise 0QnF1'},  function(stream) {
   stream.on('data', function(tweet) {
     //console.log(tweet.text);
     console.log(tweet);
@@ -129,8 +145,6 @@ clientExpediaChat.stream('statuses/filter', {track: 'Cruise 0QnF1'},  function(s
     var nameID = tweet.id_str;
 
     var text = tweet.text;
-
-
 
     if(text.includes('bahamas') || text.includes('caribbean') || text.includes('alaska')){
 
@@ -158,15 +172,27 @@ clientExpediaChat.stream('statuses/filter', {track: 'Cruise 0QnF1'},  function(s
 
       var reply = '';
 
-      // if(date === ''){
-      //   reply = "https://www.expedia.com/Cruise-Search?destination="+dest+"&earliest-departure-date=2016-07-01";       
-      // }else{
-      //   reply = "https://www.expedia.com/Cruise-Search?destination="+dest+"&earliest-departure-date="+date;
-      // }     
+      var rand_str = randomstring.generate(7);
 
-      reply = "Would you like a trip to " + dest;
+        request({
+                url: 'https://api.wit.ai/converse', //URL to5 hit
+                qs: {v: '20160526', session_id : rand_str , text : "I would like a trip to " + dest}, //Query string data
+                method: 'POST',
+                headers: {'Authorization': 'Bearer KB7WPHYI4572VEVGZP4SKUADCLPRVWLO', 'Content-Type': 'application/json', 'Accept': 'application/json'}
+              },function(error,response,body){
+                console.log(body);
+              request({
+                url: 'https://api.wit.ai/converse', //URL to5 hit
+                qs: {v: '20160526', session_id : rand_str}, //Query string data
+                method: 'POST',
+                headers: {'Authorization': 'Bearer KB7WPHYI4572VEVGZP4SKUADCLPRVWLO', 'Content-Type': 'application/json', 'Accept': 'application/json'},
+                body : '{"dest":'+'"'+dest+'"'+'}'
+              },function(error,response,body){
+                console.log(body);
+                var respBody = JSON.parse(body);
+                reply = respBody.msg;
 
-      var name = tweet.user.screen_name;
+                var name = tweet.user.screen_name;
 
       console.log('tweeting this' + reply);
 
@@ -176,11 +202,14 @@ clientExpediaChat.stream('statuses/filter', {track: 'Cruise 0QnF1'},  function(s
         var newChat = new Object();
         newChat.latest_id = data.id_str;
         newChat.status = 0;
-        newChat.witSessionId = data.id_str;
+        newChat.witSessionId = rand_str;
 
         chatHistory.push(newChat)
 
-      })
+      });
+              }); 
+
+              });
     }
 });
 
