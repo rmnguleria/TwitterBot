@@ -137,6 +137,10 @@ clientExpediaChat1.stream('statuses/filter', {track: '@expchatbot '},  function(
                 var reply = userObj.msg;
 
                 if(reply.includes('Let me search some which are under')){
+
+                    var jMinDur = parseInt(chatHistory[index].journey_duration)/2;
+                    var jMaxDur = jMinDur * 3;
+
                     var jDate = new Date(chatHistory[index].journey_time);
                     var jNewDate = new Date(new Date(jDate).setMonth(jDate.getMonth() + 4));
 
@@ -146,25 +150,41 @@ clientExpediaChat1.stream('statuses/filter', {track: '@expchatbot '},  function(
                     var month2 = jNewDate.getMonth() + 1;
                     var jNewDateStr = jNewDate.getFullYear() + "-" + month2 + "-" + jNewDate.getDay();
 
-                    var jMinDur = parseInt(chatHistory[index].journey_duration)/2;
-                    var jMaxDur = jMinDur * 3;
+                    var jearliestDate = jDate.getFullYear() + "-" + jDate.getMonth() + "-" + jDate.getDay();
+                    var jLatestDate = jNewDate.getFullYear() + "-" + jNewDate.getMonth() + "-" + jNewDate.getDay();
+
                     var jMaxPrice = chatHistory[index].journey_budget;
                     var jDesitnation = chatHistory[index].destination;
 
-                    var url = "https://www.expedia.com/Cruise-Search?min-length="
+                    request({
+                        url: 'http://terminal2.expedia.com/x/cruise/search/sailings', //URL to5 hit
+                            qs: {destinations: destinations[jDesitnation], earliestDeptDate : jearliestDate, latestDeptDate : jLatestDate, minLength : jMinDur, maxLength : jMaxDur, maxPrice : jMaxPrice,
+                            sortBy : 'price', sortOrder : 'asc' , limit : '10' , 'apikey' : 'Ud5P8FMQAh65ENW3c9y7h52cdrCt9xn1'}, //Query string data
+                            method: 'GET'
+                    },function(error,response,body){
+                             console.log(response.statusCode,body);
+                             var userObj = JSON.parse(body);
+                             var firstCruise = userObj.sailings[0];
+                             var cruiseName = firstCruise['cruiseLine']['name'];
+                             var offer = firstCruise['cabinClasses'][0]['cabinCategories'][0]['offers'][0]['promotions'][0].name;
+
+                            reply = "Voia We found " + cruiseName + " " + offer;
+
+                            var url = "https://www.expedia.com/Cruise-Search?min-length="
                                 +jMinDur+"&max-length="+jMaxDur+"&destination="+jDesitnation
                                     +"&earliest-departure-date="+jDateStr+"&latest-departure-date="+jNewDateStr+"";
 
-                    console.log("url is " + url);
+                            console.log("url is " + url);
 
-                    bitly.shorten(url).then(function(response){
-                        reply =  "Voila " + response.data.url;
-                        console.log(reply);
-                        T.post('statuses/update', {in_reply_to_status_id: nameID, status: ' @' + name + ' ' + reply}, function(err, data, response) { 
-                            console.log(data);
-                            chatHistory[index].latest_id = data.id_str;
-                        });
-                    })
+                            bitly.shorten(url).then(function(response){
+                                reply = reply + " " +  response.data.url;
+                                console.log(reply);
+                                T.post('statuses/update', {in_reply_to_status_id: nameID, status: ' @' + name + ' ' + reply}, function(err, data, response) { 
+                                    console.log(data);
+                                    chatHistory[index].latest_id = data.id_str;
+                                });
+                            });
+                    });
                 }else{
                     T.post('statuses/update', {in_reply_to_status_id: nameID, status: ' @' + name + ' ' + reply}, function(err, data, response) { 
                         console.log(data);
